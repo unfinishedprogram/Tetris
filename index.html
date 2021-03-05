@@ -1,12 +1,28 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>TETRIS</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<meta charset="UTF-8"> 
-</head>
-<body>
-	<canvas id="canvas"></canvas>
+	<head>
+		<title>Tetris</title>
+	</head>
+<body id="HOME" onkeydown="handleInput(event)" data-new-gr-c-s-check-loaded="14.997.0" data-gr-ext-installed="">
+	
+	<canvas id="canvas" width="160" height="144" style="border: 2px solid black; width: 1280px; height: 1152px;"></canvas>
+	<img src="SpriteSheet/tetrisBackground.png" alt="" id="backgroundImage">
+	<img src="SpriteSheet/dynamicSprites.png" alt="" id="spriteSheet">
 	<script type="text/javascript" src="tetris.js"></script>
-</body>
-</html>
+
+	<style>
+		canvas {
+  			image-rendering: pixelated;
+ 			image-rendering: -moz-crisp-edges;
+  			image-rendering: crisp-edges;
+		}
+		img{
+			display:none;
+		}
+		body{
+			display:flex;
+			justify-content: space-around;
+		}
+	</style>
+
+</body></html>
