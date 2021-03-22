@@ -30,10 +30,6 @@ const renderer = new THREE.WebGLRenderer();
 updateWindowDims()
 
 //renderer.setSize( windowWidth * 16, windowHeight * 16 );
-
-renderer.domElement.style = `
-	border: 2px solid black;
-`
 document.body.appendChild(renderer.domElement);
 
 renderer.setClearColor( 0xffffff, 1 );
