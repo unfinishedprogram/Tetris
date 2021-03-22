@@ -1,12 +1,3 @@
-var c = document.getElementById("canvas");
-c.width = 160;
-c.height = 144;
-c.style = "border: 2px solid black";
-c.style.width = 160*8 + "px";
-c.style.height = 144*8 + "px";
-
-var ctx = c.getContext("2d");
-
 var gameInstance = null;
 
 var scoreTitle;
@@ -22,11 +13,26 @@ var pressedKeys = {};
 window.onkeyup = function(e) { pressedKeys[e.keyCode] = false; }
 window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
 var media;
+
 onload = function () {
 	media = new function(){
 		this.spriteImages = document.getElementById("spriteSheet");
 		this.spriteSheet = imageToSpriteData(this.spriteImages, 128, 40);
 		this.backgroundImage = document.getElementById("backgroundImage");
+		this.backgroundSheet = imageToSpriteData(this.backgroundImage, 176, 160);
+
+		this.spriteSheet3D = spriteSheetToModels(this.spriteSheet);
+		this.backgroundSheet3D =  spriteSheetToModels(this.backgroundSheet);
+
+		this.charToSprite3D =  function(charcode){
+			if(charcode > 64){
+				return this.spriteSheet3D[charcode+17-66];
+			} else if(charcode < 58){
+				return this.spriteSheet3D[charcode-6];
+			} else{
+				return this.spriteSheet3D[56];
+			}
+		}
 
 		this.charToSprite = function(charcode){
 			//A-Z : 17-43
@@ -44,7 +50,7 @@ onload = function () {
 		}
 	}
 	
-	gameInstance = new Game(ctx, media);
+	gameInstance = new Game(media);
 
 	scoreTitle = new textBox(14, 1, "SCORE");
 	levelTitle = new textBox(14, 6, "LEVEL");
@@ -58,9 +64,8 @@ onload = function () {
 };
 
 
-function Game(ctx, media){
+function Game(media){
 	this.frame = 0;
-	this.ctx = ctx;
 	this.softCombo = 0;
 
 	//loading media
@@ -70,9 +75,42 @@ function Game(ctx, media){
 		lines: 0
 	}
 
-
 	this.display = {
 		textBoxes: [],
+
+		draw3DSprite:  function (sprite, x, y, z){
+			let obj = new THREE.Mesh(sprite.geometry, sprite.material);
+			obj.position.x = x -10;
+			obj.position.y = -y;
+			obj.position.z = z;
+			obj.z = 0;
+			activeObjects.push(obj);
+		},
+
+		drawBackground3D: function(){
+			let w = 22;
+			let h = 20;
+			for (let x = 0; x < w; x++){
+				for (let y = 0; y < h; y++){
+					let tmp = media.backgroundSheet3D[y*w + x];
+					let obj = new THREE.Mesh(tmp.geometry, tmp.material);
+					obj.position.x = x -11;
+					obj.position.y = -y + 1;
+					obj.position.z = 0;
+
+
+					if(x > 2 && x < 13 && y < 19 && y > 0){
+						obj.position.z = -1;
+					}
+					if(x > 14 && x < 20 && y > 13 && y < 18){
+						obj.position.z = -1;
+					}
+			
+
+					activeObjects.push(obj);
+				}
+			}
+		},
 
 		drawTextBoxes: function(){
 			for(let i = 0; i < this.textBoxes.length; i++){
@@ -80,17 +118,17 @@ function Game(ctx, media){
 			}
 		},
 
+		backgroundGeo: new THREE.PlaneGeometry( 5, 20 ),
+		backgroundMat: new THREE.MeshBasicMaterial( {color: 0xffff00, map: new THREE.Texture(media.backgroundImage) } ),
+		backgroundMesh: new THREE.Mesh(this.backgroundGeo, this.backgroundMat),
 		clearScreen: function(){
-			ctx.drawImage(backgroundImage, 0, 0);
-		},
+			this.drawBackground3D();
 
-		drawSprite: function(sprite, x, y){
-			ctx.putImageData(sprite, x*8, y*8);
 		},
 
 		drawPiece: function(piece, x, y){
 			for (let i = 0; i < piece.length; i++){
-				this.drawSprite(media.spriteSheet[piece[i].sprite] , piece[i].x+x+2, piece[i].y+y-2);
+				this.draw3DSprite(media.spriteSheet3D[piece[i].sprite] , piece[i].x+x+2, piece[i].y+y-2, 0)
 			}
 		},
 
@@ -98,13 +136,11 @@ function Game(ctx, media){
 			for(let y = 0; y < 20; y++){
 				for(let x = 0; x < 10; x++){
 					if(board[y][x]){
-						this.drawSprite(media.spriteSheet[board[y][x].sprite],x+2, y-2);
+						this.draw3DSprite(media.spriteSheet3D[board[y][x].sprite],x+2, y-2, 0)
 					}		
 				}
 			}
-		},
-
-		
+		},	
 	}
 	this.createGameBoard = function(){
 		let board = [];
@@ -159,7 +195,6 @@ function Game(ctx, media){
 		} else{
 			clearInterval(interval);
 		}
-		
 		return true;
 	}
 
@@ -242,7 +277,7 @@ textBox = function(x, y, content){
 	gameInstance.display.textBoxes.push(this);
 	this.display = function(){
 		for(let i = 0; i < this.content.length; i++){
-			gameInstance.display.drawSprite(media.charToSprite(this.content.charCodeAt(i)), this.x+i, this.y);
+			gameInstance.display.draw3DSprite(media.charToSprite3D(this.content.charCodeAt(i)), this.x+i, this.y, 0.1);
 		}
 	}	
 }
@@ -258,7 +293,6 @@ function changeLevel(change){
 function changeLines(change){
 	gameInstance.gameInfo.lines += change;
 	lines.content = gameInstance.gameInfo.lines.toString();
-	console.log(gameInstance.gameInfo.lines);
 }
 
 levelFrameLookup = [53, 49, 45, 41, 37, 33, 28, 22, 17, 11, 10, 9, 8, 7, 6, 6, 5, 5, 4, 4, 3];
@@ -270,12 +304,13 @@ startGame = function(){
 	pieceIndexNum = Math.floor(Math.random() * 7);
 	nextPiece = Math.floor(Math.random() * 7);
 	gameInstance.dropped = new gameInstance.dropPiece(pieceIndex[pieceIndexNum], gameInstance.gameBoard);
-	interval = setInterval(stepFrame, 1000/60);
+	start3D();
+	
+	//interval = setInterval(stepFrame, 1000/60);
 }
 
 stepFrame = function(){
 	gameInstance.frame++;
-	console.log(levelFrameLookup[gameInstance.gameInfo.level]);
 	if(gameInstance.frame >= levelFrameLookup[gameInstance.gameInfo.level]){
 		if(gameInstance.dropped.stepGravity()){
 			changeScore(gameInstance.softCombo);
@@ -486,6 +521,3 @@ function imageToSpriteData(image, width, height){
 	}
 	return spriteSheet;
 }
-
-
-
