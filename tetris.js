@@ -1,9 +1,6 @@
 var c = document.getElementById("canvas");
 c.width = 160;
 c.height = 144;
-c.style = "border: 2px solid black";
-c.style.width = 160*8 + "px";
-c.style.height = 144*8 + "px";
 
 var ctx = c.getContext("2d");
 

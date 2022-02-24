@@ -3,18 +3,19 @@
 	<head>
 		<title>Tetris</title>
 	</head>
-<body id="HOME" onkeydown="handleInput(event)" data-new-gr-c-s-check-loaded="14.997.0" data-gr-ext-installed="">
+	<body onkeydown="handleInput(event)">
 	
-	<canvas id="canvas" width="160" height="144" style="border: 2px solid black; width: 1280px; height: 1152px;"></canvas>
+	<canvas id="canvas" width="160" height="144"></canvas>
 	<img src="SpriteSheet/tetrisBackground.png" alt="" id="backgroundImage">
 	<img src="SpriteSheet/dynamicSprites.png" alt="" id="spriteSheet">
 	<script type="text/javascript" src="tetris.js"></script>
-
 	<style>
 		canvas {
   			image-rendering: pixelated;
- 			image-rendering: -moz-crisp-edges;
+ 				image-rendering: -moz-crisp-edges;
   			image-rendering: crisp-edges;
+				width: min(90vh, 90vw);
+				box-shadow: 0px 0px 10px black;
 		}
 		img{
 			display:none;
@@ -22,6 +23,10 @@
 		body{
 			display:flex;
 			justify-content: space-around;
+			align-items: center;
+			margin: 0;
+			height: 100vh;
+			background-color: #333;
 		}
 	</style>
 
